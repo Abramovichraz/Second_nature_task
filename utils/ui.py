@@ -5,9 +5,6 @@ from playwright.sync_api import Error, Page, expect
 
 def dismiss_open_popovers(page: Page) -> None:
     page.keyboard.press("Escape")
-    backdrop = page.locator(".sn-popover-content-backdrop.block-clicks")
-    if backdrop.is_visible(timeout=2_000):
-        backdrop.click(position={"x": 5, "y": 5}, force=True)
 
 
 def fill_stable_test_id(page: Page, test_id: str, value: str) -> None:

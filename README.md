@@ -179,6 +179,7 @@ After the configured retry limit, the test fails clearly.
 
 Validation tests document only behavior that is reproducible in the current product.
 Known product gaps identified during manual testing are documented separately in the bug report and are not all automated, in order to avoid flaky or environment-dependent tests.
+If a validation rule is not enforced in the current environment, the related automated check is skipped with a clear reason instead of being marked as a false failure.
 
 ## Security
 

@@ -3,8 +3,9 @@ from __future__ import annotations
 from pages.course_page import CoursePage
 
 
-def test_course_page_exposes_persistence_actions() -> None:
+def test_course_page_exposes_stable_course_creation_actions() -> None:
     course = CoursePage(None)
 
-    assert callable(course.save_course)
-    assert callable(course.expect_publish_available)
+    assert callable(course.open_new_course_form)
+    assert callable(course.set_course_title)
+    assert callable(course.try_continue_from_course_layout)

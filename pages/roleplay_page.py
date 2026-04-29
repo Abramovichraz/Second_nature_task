@@ -61,7 +61,7 @@ class RoleplayPage:
 
     def add_ai_assistant_roleplay_template(self) -> None:
         dismiss_open_popovers(self.page)
-        self.page.get_by_test_id("task-selector-button").click()
+        self.page.get_by_test_id("task-selector-button").click(force=True)
         expect(self.page.get_by_test_id("add-roleplay-template-button")).to_be_visible(timeout=20_000)
         self.page.get_by_test_id("add-roleplay-template-button").click()
         self.page.get_by_test_id("available-templates-toggle").click()
@@ -72,94 +72,3 @@ class RoleplayPage:
 
     def expect_template_ready_for_ai_creation(self) -> None:
         expect(self.page.get_by_test_id("co-create-with-ai-button")).to_be_visible(timeout=20_000)
-
-    def start_ai_co_create(self) -> None:
-        self.page.get_by_test_id("co-create-with-ai-button").click()
-        self.page.get_by_test_id("confirm-generate-roleplay-button").click()
-
-    def send_co_create_messages(self, messages: list[str]) -> None:
-        input_box = self.page.get_by_test_id("co-create-chat-input")
-        send_button = self.page.get_by_test_id("co-create-chat-send")
-        thinking_status = self.page.get_by_text("Client is thinking")
-        retry_error = self.page.get_by_text(AI_RETRY_ERROR)
-
-        for message in messages:
-            error_count = 0
-
-            while True:
-                expect(input_box).to_be_visible(timeout=120_000)
-                expect(thinking_status).not_to_be_visible(timeout=180_000)
-
-                previous_retry_errors = retry_error.count()
-                input_box.click()
-                input_box.fill("")
-                input_box.type(message, delay=5)
-                expect(send_button).to_be_enabled(timeout=60_000)
-                send_button.click()
-
-                self.page.wait_for_timeout(500)
-                if thinking_status.is_visible(timeout=10_000):
-                    expect(thinking_status).not_to_be_visible(timeout=180_000)
-
-                if retry_error.count() <= previous_retry_errors:
-                    break
-
-                error_count += 1
-                if error_count > 2:
-                    raise AssertionError(
-                        f'AI co-create returned "{AI_RETRY_ERROR}" more than 2 times for message: {message}'
-                    )
-
-    def set_persona_background(self, background: str) -> None:
-        background_box = self.page.get_by_role("textbox", name="The Persona's Background")
-        if not background_box.is_visible(timeout=5_000):
-            return
-
-        background_box.fill(background)
-        self.page.get_by_role("button", name="Save").click()
-
-    def select_custom_persona(self, persona_name: str) -> None:
-        self.page.get_by_test_id("persona-setup-edit-button").click()
-        self.page.get_by_text("Custom Personas", exact=True).click()
-        self.page.get_by_test_id(f"persona-card-{persona_name}").click()
-        self.page.get_by_test_id("persona-setup-done-btn").click(force=True)
-
-    def set_ai_persona_opener(self, opener_text: str) -> None:
-        prospect_opener = self.page.locator("#prospect-opener")
-        prospect_opener.scroll_into_view_if_needed()
-
-        opener_candidates = [
-            self.page.locator("#ProspectOpener"),
-            prospect_opener.locator("textarea, input").first,
-            prospect_opener.locator("[contenteditable=true]").first,
-        ]
-        edit_buttons = [
-            prospect_opener.get_by_role("button", name="Edit"),
-            prospect_opener.get_by_text("Edit", exact=True),
-            self.page.locator("#ai-trainer-opener").get_by_role("button", name="Edit"),
-            self.page.locator("#ai-trainer-opener").get_by_text("Edit", exact=True),
-        ]
-
-        opener = None
-        for attempt in range(3):
-            for candidate in opener_candidates:
-                if candidate.count() and candidate.first.is_visible(timeout=2_000):
-                    opener = candidate.first
-                    break
-            if opener:
-                break
-
-            for edit_button in edit_buttons:
-                if edit_button.count() and edit_button.first.is_visible(timeout=2_000):
-                    edit_button.first.click(force=True)
-                    self.page.wait_for_timeout(1_000)
-                    break
-
-            if attempt == 1:
-                prospect_opener.click(force=True)
-
-        if opener is None:
-            opener = prospect_opener.locator("textarea, input, [contenteditable=true]").first
-        expect(opener).to_be_visible(timeout=20_000)
-        opener.fill(opener_text)
-        prospect_opener.get_by_role("button", name="Done").click(force=True)
