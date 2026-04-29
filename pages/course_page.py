@@ -21,6 +21,9 @@ class CoursePage:
     def course_title_value(self) -> str:
         return self.page.get_by_test_id("title").input_value()
 
+    def title_input_is_visible(self) -> bool:
+        return self.page.get_by_test_id("title").is_visible(timeout=3_000)
+
     def try_continue_from_course_layout(self) -> None:
         self.page.get_by_test_id("next-step-button").click()
 
@@ -28,6 +31,7 @@ class CoursePage:
         self.open_new_course_form()
         self.set_course_title(title)
         self.try_continue_from_course_layout()
+        expect(self.page.get_by_test_id("task-selector-button")).to_be_visible(timeout=30_000)
 
     def save_course(self) -> None:
         self.page.get_by_test_id("save-course").click()

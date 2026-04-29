@@ -9,21 +9,11 @@ AI_RETRY_ERROR = "Oops! Something went wrong, could you try entering your messag
 
 
 def chat_input(page: Page):
-    return page.locator(
-        "[data-testid*='chat-input'], "
-        "[data-testid*='message-input'], "
-        "textarea, "
-        "input[placeholder*='message' i], "
-        "input[placeholder*='type' i]"
-    ).first
+    return page.get_by_test_id("roleplay-chat-input")
 
 
 def send_button(page: Page):
-    return page.locator(
-        "[data-testid*='send'], "
-        "button[aria-label*='Send' i], "
-        "button:has-text('Send')"
-    ).first
+    return page.get_by_test_id("roleplay-chat-send")
 
 
 def send_message_with_retry(page: Page, message: str, max_retries: int = 2) -> None:
@@ -72,9 +62,18 @@ class RoleplayPage:
     def add_ai_assistant_roleplay_template(self) -> None:
         dismiss_open_popovers(self.page)
         self.page.get_by_test_id("task-selector-button").click()
+        expect(self.page.get_by_test_id("add-roleplay-template-button")).to_be_visible(timeout=20_000)
         self.page.get_by_test_id("add-roleplay-template-button").click()
         self.page.get_by_test_id("available-templates-toggle").click()
+        expect(
+            self.page.get_by_test_id("featured-template-single-persona-role-play-[ai-assistant]")
+        ).to_be_visible(timeout=20_000)
         self.page.get_by_test_id("featured-template-single-persona-role-play-[ai-assistant]").click()
+
+    def expect_template_ready_for_ai_creation(self) -> None:
+        expect(self.page.get_by_test_id("co-create-with-ai-button")).to_be_visible(timeout=20_000)
+
+    def start_ai_co_create(self) -> None:
         self.page.get_by_test_id("co-create-with-ai-button").click()
         self.page.get_by_test_id("confirm-generate-roleplay-button").click()
 

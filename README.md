@@ -1,8 +1,10 @@
 # Second Nature Playwright Automation
 
-End-to-end test automation for the Second Nature course editor using Python, pytest, and Playwright.
+Python + pytest + Playwright automation suite for a Second Nature QA assignment.
 
-The project follows the Page Object Model so UI selectors and business actions are kept in `pages/`, while test intent remains clear in `tests/`.
+The suite is intentionally focused on stable UI behavior. It avoids long AI conversations and does not validate AI-generated content.
+
+> AI responses are not validated due to their non-deterministic nature. Automation focuses on stable UI flows and system behavior.
 
 ## Project Structure
 
@@ -25,23 +27,51 @@ project/
 └── .env.example
 ```
 
-## What Is Covered
+## What Is Tested
 
-- Login through the stable Second Nature application URL.
-- Course creation from the course editor.
-- AI Assistant role-play template creation.
-- Co-create chat interaction with retry handling for transient AI errors.
-- Course save and approve flow.
-- Custom persona selection for `Toby`.
-- AI persona opener update.
-- Language settings for English and Hebrew.
-- Topics to Cover configuration with a Marvel Studios helpful link.
+- Login and home page readiness.
+- Short course creation smoke flow:
+  - Create a course.
+  - Fill the title.
+  - Move to the next step.
+  - Add the AI Assistant role-play template.
+- Stable validation checks for course title behavior.
+- Role-play smoke behavior, when a direct role-play URL is configured:
+  - Role-play screen opens.
+  - Chat input is visible.
+  - Send button is visible.
+  - One short message can be sent with retry handling for the known transient AI error.
+
+## What Is Not Tested
+
+- AI response correctness.
+- Marvel/DC factual accuracy.
+- Long AI co-create conversations.
+- Persona quality, voice quality, or generated content quality.
+- Visual pixel-perfect checks.
+
+## Manual vs Automation Scope
+
+The manual testing phase included extensive coverage of:
+
+- AI behavior and response validation.
+- Multilingual scenarios, including Hebrew, English, RTL, and LTR.
+- Edge cases, including long inputs and large file uploads.
+- UI and UX issues.
+
+Automation focuses only on stable and deterministic flows such as:
+
+- Course creation.
+- Input validation.
+- Basic role-play smoke test.
+
+Complex scenarios involving AI behavior and dynamic content were intentionally tested manually.
 
 ## Prerequisites
 
 - Python 3.11 or newer.
 - Access to a valid Second Nature test account.
-- Chromium browser installed through Playwright.
+- Chromium installed through Playwright.
 
 ## Installation
 
@@ -52,7 +82,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install Python dependencies:
+Install dependencies:
 
 ```powershell
 pip install -r requirements.txt
@@ -64,15 +94,15 @@ Install the Playwright browser:
 python -m playwright install chromium
 ```
 
-## Configuration
+## Environment Configuration
 
-Create a local `.env` file from the example:
+Create a local `.env` file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Update `.env` with your test credentials:
+Example `.env`:
 
 ```text
 SECOND_NATURE_EMAIL=your.email@example.com
@@ -84,9 +114,9 @@ HEADLESS=false
 SLOW_MO_MS=100
 ```
 
-`SECOND_NATURE_LOGIN_URL` is optional. Leave it empty unless you intentionally want to start from a specific Auth0 URL. Auth0 state URLs can expire, so the default behavior is to start from `SECOND_NATURE_BASE_URL` and let the application create a fresh login session.
+`SECOND_NATURE_LOGIN_URL` is optional. Leave it empty to start from `SECOND_NATURE_BASE_URL` and let the application create a fresh Auth0 state.
 
-`SECOND_NATURE_ROLEPLAY_URL` is optional. Set it to a direct role-play/test screen URL to run the role-play smoke test. When it is empty, that test is skipped rather than creating a long AI setup flow.
+`SECOND_NATURE_ROLEPLAY_URL` is optional but required for `tests/test_roleplay.py`. Set it to a direct URL for an existing role-play/test screen. If it is empty, the role-play smoke test is skipped by design.
 
 ## Running Tests
 
@@ -96,13 +126,13 @@ Run the full suite:
 python -m pytest
 ```
 
-Run only the main smoke flow:
+Run smoke tests:
 
 ```powershell
 python -m pytest -m smoke
 ```
 
-Run a specific file:
+Run one test file:
 
 ```powershell
 python -m pytest tests/test_create_course.py
@@ -118,35 +148,37 @@ python -m pytest -s
 ## Test Design
 
 `pages/home_page.py`
-: Login and home page readiness checks.
+: Login flow and home page readiness.
 
 `pages/course_page.py`
-: Course editor actions such as creating a course shell, saving, language settings, presentation settings, and Topics to Cover.
+: Course setup actions and title validation helpers.
 
 `pages/roleplay_page.py`
-: Role-play setup actions such as template selection, AI co-create chat, custom persona selection, and conversation opener editing.
+: Role-play template setup and role-play chat smoke helpers.
 
 `utils/`
-: Shared UI helpers for retrying unstable fills and dismissing blocking popovers.
+: Shared UI helpers for stable interactions.
 
-## Stability Notes
+## AI Retry Handling
 
-The AI co-create step depends on live generation and can occasionally take longer than a normal deterministic UI action. The test includes retry handling for this exact application response:
+The role-play smoke test uses:
+
+```python
+send_message_with_retry(page, message, max_retries=2)
+```
+
+The helper retries only when this known transient AI error appears:
 
 ```text
 Oops! Something went wrong, could you try entering your message again?
 ```
 
-If that response appears more than two times for the same message, the test fails with a clear assertion.
+After the configured retry limit, the test fails clearly.
 
-Validation tests intentionally document current product gaps with strict `xfail` markers:
+## Validation Notes
 
-- Course title currently accepts more than 70 characters.
-- Empty course title currently allows continuing to the next step.
-- Empty Conversation Context may currently save successfully.
-
-When the product behavior is fixed, pytest will report XPASS failures so the known-bug markers can be removed.
+Validation tests should only document behavior that is reproducible in the current product. Strict `xfail` markers are used only for confirmed validation gaps. If the product behavior is fixed, pytest reports XPASS so the marker can be removed.
 
 ## Security
 
-Do not commit `.env`, credentials, storage state, reports, or generated browser artifacts. These are excluded by `.gitignore`.
+Do not commit `.env`, credentials, storage state, reports, browser traces, or generated artifacts. These files are excluded by `.gitignore`.
