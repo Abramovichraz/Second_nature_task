@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from pages.course_page import CoursePage
 from pages.home_page import HomePage
 
@@ -24,10 +22,9 @@ def test_course_title_max_length_is_limited_to_70_characters(page, settings) -> 
     course.set_course_title(long_title)
 
     title_length = len(course.course_title_value())
-    if title_length > 70:
-        pytest.skip("Title max length is not enforced in the current environment.")
-
-    assert title_length <= 70
+    assert title_length <= 70, (
+        f"Course title should be limited to 70 characters, but actual length was {title_length}"
+    )
 
 
 def test_required_course_title_blocks_continue(page, settings) -> None:
@@ -39,7 +36,5 @@ def test_required_course_title_blocks_continue(page, settings) -> None:
     current_url = page.url
     course.try_continue_from_course_layout()
 
-    if page.url != current_url:
-        pytest.skip("Required title validation is not enforced in the current environment.")
-
-    assert course.title_input_is_visible()
+    assert page.url == current_url, "User should not be able to continue without a course title"
+    assert course.title_input_is_visible(), "Title input should remain visible after blocked continue"
