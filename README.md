@@ -10,33 +10,33 @@ The suite is intentionally focused on stable UI behavior. It avoids long AI conv
 
 ```text
 project/
-├── pages/
-│   ├── home_page.py
-│   ├── course_page.py
-│   └── roleplay_page.py
-├── tests/
-│   ├── test_create_course.py
-│   ├── test_validation.py
-│   ├── test_persistence.py
-│   └── test_roleplay.py
-├── conftest.py
-├── utils/
-├── README.md
-├── requirements.txt
-├── pytest.ini
-└── .env.example
+|-- pages/
+|   |-- home_page.py
+|   |-- course_page.py
+|   `-- roleplay_page.py
+|-- tests/
+|   |-- test_create_course.py
+|   |-- test_validation.py
+|   |-- test_persistence.py
+|   `-- test_roleplay.py
+|-- conftest.py
+|-- utils/
+|-- README.md
+|-- requirements.txt
+|-- pytest.ini
+`-- .env.example
 ```
 
 ## What Is Tested
 
-- Login and home page readiness.
+- Home page readiness after authentication.
 - Short course creation smoke flow:
   - Create a course.
   - Fill the title.
   - Move to the next step.
   - Add the AI Assistant role-play template.
-- Stable validation checks for course title behavior.
-- Role-play smoke behavior, when a direct role-play URL is configured:
+- Stable validation checks.
+- Role-play smoke test, when a direct role-play URL is configured:
   - Role-play screen opens.
   - Chat input is visible.
   - Send button is visible.
@@ -61,9 +61,9 @@ The manual testing phase included extensive coverage of:
 
 Automation focuses only on stable and deterministic flows such as:
 
-- Course creation.
+- Stable UI flows.
 - Input validation.
-- Basic role-play smoke test.
+- Smoke tests.
 
 Complex scenarios involving AI behavior and dynamic content were intentionally tested manually.
 
@@ -148,7 +148,7 @@ python -m pytest -s
 ## Test Design
 
 `pages/home_page.py`
-: Login flow and home page readiness.
+: Authentication entry point and home page readiness.
 
 `pages/course_page.py`
 : Course setup actions and title validation helpers.
@@ -177,7 +177,8 @@ After the configured retry limit, the test fails clearly.
 
 ## Validation Notes
 
-Validation tests should only document behavior that is reproducible in the current product. Strict `xfail` markers are used only for confirmed validation gaps. If the product behavior is fixed, pytest reports XPASS so the marker can be removed.
+Validation tests document only behavior that is reproducible in the current product.
+Known product gaps identified during manual testing are documented separately in the bug report and are not all automated, in order to avoid flaky or environment-dependent tests.
 
 ## Security
 
