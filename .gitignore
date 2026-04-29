@@ -1,0 +1,10 @@
+.env
+.pytest_cache/
+pytest-cache-files-*/
+__pycache__/
+*.pyc
+test-results/
+playwright-report/
+reports/
+downloads/
+storage_state.json
